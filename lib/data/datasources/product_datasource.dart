@@ -4,8 +4,8 @@ import 'package:stock_flutter/data/models/product_model.dart';
 abstract class ProductDataSource {
   Future<void> addProduct(ProductModel product);
   Future<void> updateProduct(ProductModel product);
-  Future<void> deleteProduct(String productId);
-  Future<ProductModel?> getProduct(String productId);
+  Future<void> deleteProduct(String productId, String userId);
+  Future<ProductModel?> getProduct(String productId, String userId);
   Future<List<ProductModel>> getAllProducts(String userId);
   Future<List<ProductModel>> getProductsByCategory(String userId, String categoryId);
   Future<List<ProductModel>> getLowStockProducts(String userId);
@@ -37,15 +37,26 @@ class ProductDataSourceImpl implements ProductDataSource {
   }
 
   @override
-  Future<void> deleteProduct(String productId) async {
-    // This requires userId, but we'll handle it in the repository
-    throw UnimplementedError();
+  Future<void> deleteProduct(String productId, String userId) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('products')
+        .doc(productId)
+        .delete();
   }
 
   @override
-  Future<ProductModel?> getProduct(String productId) async {
-    // This requires userId, but we'll handle it in the repository
-    throw UnimplementedError();
+  Future<ProductModel?> getProduct(String productId, String userId) async {
+    final doc = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('products')
+        .doc(productId)
+        .get();
+
+    if (!doc.exists) return null;
+    return ProductModel.fromJson(doc.data() as Map<String, dynamic>);
   }
 
   @override

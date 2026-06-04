@@ -28,8 +28,8 @@ class MovementRepositoryImpl implements MovementRepository {
   }
 
   @override
-  Future<List<Movement>> getProductMovements(String productId) async {
-    throw UnimplementedError('Use getProductMovements in datasource with userId');
+  Future<List<Movement>> getProductMovements(String productId, String userId) async {
+    return await _movementDataSource.getProductMovements(productId, userId);
   }
 
   @override
@@ -37,6 +37,6 @@ class MovementRepositoryImpl implements MovementRepository {
     final movements = await _movementDataSource.getMovements(userId, startDate, endDate);
     return movements
         .where((m) => m.type == MovementType.exit)
-        .fold(0, (sum, m) => sum + m.quantity);
+        .fold<int>(0, (sum, m) => sum + m.quantity);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:stock_flutter/domain/entities/movement.dart';
 import 'package:stock_flutter/data/models/movement_model.dart';
 
 abstract class MovementDataSource {
@@ -14,12 +15,44 @@ class MovementDataSourceImpl implements MovementDataSource {
 
   @override
   Future<void> addMovement(MovementModel movement) async {
-    await _firestore
+    final productRef = _firestore
+        .collection('users')
+        .doc(movement.userId)
+        .collection('products')
+        .doc(movement.productId);
+
+    final movementRef = _firestore
         .collection('users')
         .doc(movement.userId)
         .collection('movements')
-        .doc(movement.id)
-        .set(movement.toJson());
+        .doc(movement.id);
+
+    await _firestore.runTransaction((transaction) async {
+      final productDoc = await transaction.get(productRef);
+      if (!productDoc.exists) {
+        throw Exception('Produit introuvable');
+      }
+
+      final productData = productDoc.data() as Map<String, dynamic>;
+      final currentQty = productData['quantity'] as int? ?? 0;
+      final change = movement.quantity;
+
+      int newQty;
+      if (movement.type == MovementType.entry) {
+        newQty = currentQty + change;
+      } else {
+        newQty = currentQty - change;
+        if (newQty < 0) {
+          throw Exception('Stock insuffisant pour cette vente');
+        }
+      }
+
+      transaction.set(movementRef, movement.toJson());
+      transaction.update(productRef, {
+        'quantity': newQty,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+    });
   }
 
   @override

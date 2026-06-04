@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stock_flutter/domain/entities/user.dart';
+import 'package:stock_flutter/domain/repositories/auth_repository.dart';
 import 'package:stock_flutter/providers/repository_providers.dart';
 
 // Current user state
@@ -15,7 +16,7 @@ final authStateNotifierProvider = StateNotifierProvider<AuthNotifier, User?>((re
 });
 
 class AuthNotifier extends StateNotifier<User?> {
-  final authRepository;
+  final AuthRepository authRepository;
 
   AuthNotifier(this.authRepository) : super(null) {
     _checkAuthStatus();

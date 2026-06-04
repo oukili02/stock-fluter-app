@@ -1,12 +1,15 @@
 import 'package:stock_flutter/data/datasources/product_datasource.dart';
+import 'package:stock_flutter/data/datasources/movement_datasource.dart';
 import 'package:stock_flutter/data/models/product_model.dart';
 import 'package:stock_flutter/domain/entities/product.dart';
+import 'package:stock_flutter/domain/entities/movement.dart';
 import 'package:stock_flutter/domain/repositories/product_repository.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
   final ProductDataSource _productDataSource;
+  final MovementDataSource _movementDataSource;
 
-  ProductRepositoryImpl(this._productDataSource);
+  ProductRepositoryImpl(this._productDataSource, this._movementDataSource);
 
   @override
   Future<void> addProduct(Product product) async {
@@ -43,13 +46,13 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<void> deleteProduct(String productId) async {
-    await _productDataSource.deleteProduct(productId);
+  Future<void> deleteProduct(String productId, String userId) async {
+    await _productDataSource.deleteProduct(productId, userId);
   }
 
   @override
-  Future<Product?> getProduct(String productId) async {
-    return await _productDataSource.getProduct(productId);
+  Future<Product?> getProduct(String productId, String userId) async {
+    return await _productDataSource.getProduct(productId, userId);
   }
 
   @override
@@ -69,7 +72,22 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<List<Product>> getTopSellingProducts(String userId, DateTime startDate, DateTime endDate) async {
-    // This would require joining with movements data - implement in next phase
-    throw UnimplementedError();
+    final movements = await _movementDataSource.getMovements(userId, startDate, endDate);
+    final sales = movements.where((m) => m.type == MovementType.exit);
+
+    final productSalesQty = <String, int>{};
+    for (final movement in sales) {
+      productSalesQty[movement.productId] = (productSalesQty[movement.productId] ?? 0) + movement.quantity;
+    }
+
+    final allProducts = await _productDataSource.getAllProducts(userId);
+
+    allProducts.sort((a, b) {
+      final qtyA = productSalesQty[a.id] ?? 0;
+      final qtyB = productSalesQty[b.id] ?? 0;
+      return qtyB.compareTo(qtyA);
+    });
+
+    return allProducts.where((p) => (productSalesQty[p.id] ?? 0) > 0).toList();
   }
 }

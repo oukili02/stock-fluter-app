@@ -53,7 +53,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
   final productDataSource = ref.watch(productDataSourceProvider);
-  return ProductRepositoryImpl(productDataSource);
+  final movementDataSource = ref.watch(movementDataSourceProvider);
+  return ProductRepositoryImpl(productDataSource, movementDataSource);
 });
 
 final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {

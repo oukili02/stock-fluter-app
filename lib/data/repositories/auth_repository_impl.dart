@@ -1,5 +1,4 @@
 import 'package:stock_flutter/data/datasources/auth_datasource.dart';
-import 'package:stock_flutter/data/models/user_model.dart';
 import 'package:stock_flutter/domain/entities/user.dart';
 import 'package:stock_flutter/domain/repositories/auth_repository.dart';
 

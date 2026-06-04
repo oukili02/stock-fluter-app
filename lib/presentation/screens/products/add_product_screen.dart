@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stock_flutter/domain/entities/product.dart';
+import 'package:stock_flutter/domain/entities/category.dart';
 import 'package:stock_flutter/providers/auth_providers.dart';
 import 'package:stock_flutter/providers/category_providers.dart';
 import 'package:stock_flutter/providers/repository_providers.dart';
@@ -31,6 +32,83 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     _quantityController.dispose();
     _minStockController.dispose();
     super.dispose();
+  }
+
+  void _showAddCategoryDialog() {
+    final nameController = TextEditingController();
+    final descriptionController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Nouvelle catégorie'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nom de la catégorie',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (nameController.text.trim().isEmpty) return;
+
+                try {
+                  final user = ref.read(authStateNotifierProvider);
+                  if (user == null) return;
+
+                  final category = Category(
+                    id: const Uuid().v4(),
+                    name: nameController.text.trim(),
+                    description: descriptionController.text.trim(),
+                    userId: user.id,
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  );
+
+                  final categoryRepository = ref.read(categoryRepositoryProvider);
+                  await categoryRepository.addCategory(category);
+                  
+                  ref.invalidate(allCategoriesProvider);
+                  
+                  if (mounted) {
+                    setState(() {
+                      _selectedCategoryId = category.id;
+                    });
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erreur: $e')),
+                  );
+                }
+              },
+              child: const Text('Créer'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _addProduct() async {
@@ -117,29 +195,41 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               maxLines: 3,
             ),
             const SizedBox(height: 16),
-            categories.when(
-              data: (categoryList) {
-                return DropdownButtonFormField<String>(
-                  value: _selectedCategoryId,
-                  decoration: InputDecoration(
-                    labelText: 'Catégorie',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+            Row(
+              children: [
+                Expanded(
+                  child: categories.when(
+                    data: (categoryList) {
+                      return DropdownButtonFormField<String>(
+                        value: _selectedCategoryId,
+                        decoration: InputDecoration(
+                          labelText: 'Catégorie',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        items: categoryList
+                            .map((category) => DropdownMenuItem(
+                                  value: category.id,
+                                  child: Text(category.name),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedCategoryId = value);
+                        },
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (error, __) => Text('Erreur: $error'),
                   ),
-                  items: categoryList
-                      .map((category) => DropdownMenuItem(
-                            value: category.id,
-                            child: Text(category.name),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() => _selectedCategoryId = value);
-                  },
-                );
-              },
-              loading: () => const CircularProgressIndicator(),
-              error: (error, __) => Text('Erreur: $error'),
+                ),
+                const SizedBox(width: 8),
+                IconButton.filledTonal(
+                  onPressed: _showAddCategoryDialog,
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Créer une catégorie',
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             TextField(

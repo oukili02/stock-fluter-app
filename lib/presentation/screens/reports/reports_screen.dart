@@ -248,6 +248,87 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               loading: () => const CircularProgressIndicator(),
               error: (error, __) => Text('Erreur: $error'),
             ),
+            const SizedBox(height: 24),
+
+            // Top Selling Products
+            Text(
+              'Produits les plus vendus',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            ref.watch(topSellingProductsProvider((_startDate!, _endDate!))).when(
+                  data: (productList) {
+                    if (productList.isEmpty) {
+                      return const Card(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: Text('Aucune vente enregistrée')),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: productList.length,
+                      itemBuilder: (context, index) {
+                        final product = productList[index];
+                        return Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.deepPurple.shade100,
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            title: Text(product.name),
+                            subtitle: Text('Stock actuel: ${product.quantity}'),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, __) => Text('Erreur: $error'),
+                ),
+            const SizedBox(height: 24),
+
+            // Sales by Category
+            Text(
+              'Ventes par catégorie',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            ref.watch(salesByCategoryProvider((_startDate!, _endDate!))).when(
+                  data: (categorySales) {
+                    if (categorySales.isEmpty) {
+                      return const Card(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: Text('Aucune vente enregistrée')),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: categorySales.entries.map((entry) {
+                        return Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.category, color: Colors.deepPurple),
+                            title: Text(entry.key),
+                            trailing: Chip(
+                              label: Text(
+                                '${entry.value} unités vendues',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, __) => Text('Erreur: $error'),
+                ),
           ],
         ),
       ),

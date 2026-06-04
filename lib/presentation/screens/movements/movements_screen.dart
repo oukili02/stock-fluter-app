@@ -31,14 +31,28 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
     final movements = ref.watch(movementsProvider((_startDate!, _endDate!)));
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
-        title: const Text('Mouvements de Stock'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.grey.shade800),
+          onPressed: () => context.go('/dashboard'),
+        ),
+        title: Text(
+          'Mouvements de Stock',
+          style: TextStyle(
+            color: Colors.grey.shade900,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: true,
       ),
       body: Column(
         children: [
+          // Date Range Cards
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -55,18 +69,41 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border.all(),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.01),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'Du: ${_startDate?.toLocal().toString().split(' ')[0] ?? 'Date'}',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_today_rounded, color: Color(0xFF4F46E5), size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Du', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                                Text(
+                                  _startDate?.toLocal().toString().split(' ')[0] ?? 'Choisir',
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade800, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
                   child: InkWell(
                     onTap: () async {
@@ -81,13 +118,36 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border.all(),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.01),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'Au: ${_endDate?.toLocal().toString().split(' ')[0] ?? 'Date'}',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_today_rounded, color: Color(0xFF4F46E5), size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Au', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                                Text(
+                                  _endDate?.toLocal().toString().split(' ')[0] ?? 'Choisir',
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade800, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -95,6 +155,7 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 8),
           Expanded(
             child: movements.when(
               data: (movementList) {
@@ -103,15 +164,31 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.history,
-                          size: 64,
-                          color: Colors.grey.shade300,
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.history_rounded,
+                            size: 48,
+                            color: Colors.grey.shade400,
+                          ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                         Text(
                           'Aucun mouvement',
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Les flux de stock apparaîtront ici.',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
                         ),
                       ],
                     ),
@@ -119,40 +196,78 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   itemCount: movementList.length,
                   itemBuilder: (context, index) {
                     final movement = movementList[index];
                     final isEntry = movement.type == MovementType.entry;
 
-                    return Card(
-                      child: ListTile(
-                        leading: Icon(
-                          isEntry ? Icons.arrow_downward : Icons.arrow_upward,
-                          color: isEntry ? Colors.green : Colors.red,
-                        ),
-                        title: Text(movement.reason),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text('Quantité: ${movement.quantity}'),
-                            Text(
-                              'Date: ${movement.createdAt.toLocal().toString().split('.')[0]}',
-                              style: const TextStyle(fontSize: 12),
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.01),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(color: Colors.grey.shade100),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isEntry ? Colors.green.shade50 : Colors.red.shade50,
+                              shape: BoxShape.circle,
                             ),
-                          ],
-                        ),
-                        trailing: Chip(
-                          label: Text(
-                            '${isEntry ? '+' : '-'}${movement.quantity}',
-                            style: TextStyle(
-                              color: isEntry ? Colors.green : Colors.red,
-                              fontWeight: FontWeight.bold,
+                            child: Icon(
+                              isEntry ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                              color: isEntry ? Colors.green.shade700 : Colors.red.shade700,
+                              size: 20,
                             ),
                           ),
-                        ),
-                        isThreeLine: true,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  movement.reason,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: Colors.grey.shade900,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Date: ${movement.createdAt.toLocal().toString().split('.')[0]}',
+                                  style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isEntry ? Colors.green.shade50 : Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${isEntry ? '+' : '-'}${movement.quantity}',
+                              style: TextStyle(
+                                color: isEntry ? Colors.green.shade700 : Colors.red.shade700,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -165,11 +280,69 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _showAddMovementDialog();
-        },
-        label: const Text('Ajouter Mouvement'),
-        icon: const Icon(Icons.add),
+        onPressed: _showAddMovementDialog,
+        backgroundColor: const Color(0xFF4F46E5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 4,
+        label: const Text(
+          'Ajouter Mouvement',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        icon: const Icon(Icons.add, color: Colors.white),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: 2,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: const Color(0xFF4F46E5),
+          unselectedItemColor: Colors.grey.shade400,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_rounded),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.inventory_2_rounded),
+              label: 'Produits',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.swap_horiz_rounded),
+              label: 'Mouvements',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.bar_chart_rounded),
+              label: 'Rapports',
+            ),
+          ],
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                context.go('/dashboard');
+                break;
+              case 1:
+                context.go('/products');
+                break;
+              case 2:
+                context.go('/movements');
+                break;
+              case 3:
+                context.go('/reports');
+                break;
+            }
+          },
+        ),
       ),
     );
   }
@@ -178,7 +351,11 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
     showDialog(
       context: context,
       builder: (context) => const _AddMovementDialog(),
-    );
+    ).then((_) {
+      // Invalidate providers to reload UI on dialog dismiss
+      ref.invalidate(allProductsProvider);
+      ref.invalidate(movementsProvider);
+    });
   }
 }
 
@@ -194,6 +371,7 @@ class _AddMovementDialogState extends ConsumerState<_AddMovementDialog> {
   late final _reasonController = TextEditingController();
   MovementType _type = MovementType.entry;
   String? _selectedProductId;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -211,6 +389,8 @@ class _AddMovementDialogState extends ConsumerState<_AddMovementDialog> {
       );
       return;
     }
+
+    setState(() => _submitting = true);
 
     try {
       final user = ref.read(authStateNotifierProvider);
@@ -232,13 +412,19 @@ class _AddMovementDialogState extends ConsumerState<_AddMovementDialog> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mouvement enregistré')),
+          const SnackBar(content: Text('Mouvement enregistré avec succès')),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: ${e.toString().replaceAll('Exception: ', '')}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
     }
   }
 
@@ -247,22 +433,30 @@ class _AddMovementDialogState extends ConsumerState<_AddMovementDialog> {
     final products = ref.watch(allProductsProvider);
 
     return AlertDialog(
-      title: const Text('Ajouter un mouvement'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: const Text(
+        'Nouveau mouvement',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SegmentedButton<MovementType>(
+              style: SegmentedButton.styleFrom(
+                selectedBackgroundColor: const Color(0xFF4F46E5),
+                selectedForegroundColor: Colors.white,
+              ),
               segments: const [
                 ButtonSegment(
                   value: MovementType.entry,
                   label: Text('Entrée'),
-                  icon: Icon(Icons.arrow_downward),
+                  icon: Icon(Icons.arrow_downward_rounded),
                 ),
                 ButtonSegment(
                   value: MovementType.exit,
                   label: Text('Sortie'),
-                  icon: Icon(Icons.arrow_upward),
+                  icon: Icon(Icons.arrow_upward_rounded),
                 ),
               ],
               selected: {_type},
@@ -270,14 +464,16 @@ class _AddMovementDialogState extends ConsumerState<_AddMovementDialog> {
                 setState(() => _type = value.first);
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             products.when(
               data: (productList) {
                 return DropdownButtonFormField<String>(
                   value: _selectedProductId,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Produit',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
                   ),
                   items: productList
                       .map((product) => DropdownMenuItem(
@@ -296,18 +492,18 @@ class _AddMovementDialogState extends ConsumerState<_AddMovementDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: _quantityController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Quantité',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Raison',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'Raison / Commentaire',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ],
@@ -319,8 +515,15 @@ class _AddMovementDialogState extends ConsumerState<_AddMovementDialog> {
           child: const Text('Annuler'),
         ),
         ElevatedButton(
-          onPressed: _addMovement,
-          child: const Text('Ajouter'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF4F46E5),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onPressed: _submitting ? null : _addMovement,
+          child: _submitting
+              ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Text('Enregistrer'),
         ),
       ],
     );

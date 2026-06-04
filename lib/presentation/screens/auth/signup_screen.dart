@@ -28,6 +28,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   void _signup() async {
+    if (_passwordController.text.length < 6) {
+      setState(() {
+        _error = 'Le mot de passe doit contenir au moins 6 caractères';
+      });
+      return;
+    }
+
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() {
         _error = 'Les mots de passe ne correspondent pas';
